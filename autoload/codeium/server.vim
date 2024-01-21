@@ -183,7 +183,7 @@ function! s:UnzipAndStart(status) abort
     set shellquote= shellpipe=\| shellxquote=
     set shellcmdflag=-NoLogo\ -NoProfile\ -ExecutionPolicy\ RemoteSigned\ -Command
     set shellredir=\|\ Out-File\ -Encoding\ UTF8
-    call system('& { . ' . shellescape(s:root . '/powershell/gzip.ps1') . '; Expand-File ' . shellescape(s:bin . '.gz') . ' }')
+    call system('& { . ' . codeium#util#Escape(s:root . '/powershell/gzip.ps1') . '; Expand-File ' . codeium#util#Escape(s:bin . '.gz') . ' }')
     " Restore old settings.
     let &shell = old_shell
     let &shellquote = old_shellquote

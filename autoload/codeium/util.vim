@@ -8,3 +8,12 @@ function! codeium#util#HasSupportedVersion() abort
 
   return s:nvim_virt_text_support || s:vim_virt_text_support
 endfunction
+
+" A function that takes a string and escapes it to be used in shell code
+function! codeium#util#Escape(string) abort
+  let string = a:string
+  let string = substitute(string, "'", "\\'", 'g')
+  let string = substitute(string, '"', '\\"', 'g')
+  return '"' . string . '"'
+endfunction
+
