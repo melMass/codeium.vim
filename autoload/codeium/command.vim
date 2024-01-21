@@ -94,7 +94,6 @@ function! s:commands.Auth(...) abort
     let command = 'curl -sS ' . register_user_url . ' ' .
           \ '--header "Content-Type: application/json" ' .
           \ '--data ' . codeium#util#Escape(json_encode({'firebase_id_token': auth_token}))
-    echo command
     let response = system(command)
     let curl_ssl_error = 'The revocation function was unable to check revocation '
           \ . 'for the certificate.'
