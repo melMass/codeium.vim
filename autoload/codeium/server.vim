@@ -1,5 +1,5 @@
-let s:language_server_version = '1.6.20'
-let s:language_server_sha = 'c8aabc8753a3cea9d68cda55f9395290bdf75942'
+let s:language_server_version = '1.8.10'
+let s:language_server_sha = 'c5111ded242add71608e7a70094645bb463f5ad8'
 let s:root = expand('<sfile>:h:h:h')
 let s:bin = v:null
 
@@ -129,9 +129,16 @@ function! codeium#server#Start(...) abort
     call s:ActuallyStart()
     return
   endif
+  let user_defined_os = get(g:, 'codeium_os', '')
+  let user_defined_arch = get(g:, 'codeium_arch', '')
 
-  silent let os = substitute(system('uname'), '\n', '', '')
-  silent let arch = substitute(system('uname -m'), '\n', '', '')
+  if user_defined_os != '' && user_defined_arch != ''
+    let os = user_defined_os
+    let arch = user_defined_arch
+  else
+    silent let os = substitute(system('uname'), '\n', '', '')
+    silent let arch = substitute(system('uname -m'), '\n', '', '')
+  endif
   let is_arm = stridx(arch, 'arm') == 0 || stridx(arch, 'aarch64') == 0
 
   if os ==# 'Linux' && is_arm
@@ -154,7 +161,14 @@ function! codeium#server#Start(...) abort
   if !filereadable(s:bin)
     call delete(s:bin)
     if sha ==# s:language_server_sha
-      let url = 'https://github.com/Exafunction/codeium/releases/download/language-server-v' . s:language_server_version . '/language_server_' . bin_suffix . '.gz'
+      let config = get(g:, 'codeium_server_config', {})
+      if has_key(config, 'portal_url') && !empty(config.portal_url)
+        let base_url = config.portal_url
+      else
+        let base_url = 'https://github.com/Exafunction/codeium/releases/download'
+      endif
+      let base_url = substitute(base_url, '/\+$', '', '')
+      let url = base_url . '/language-server-v' . s:language_server_version . '/language_server_' . bin_suffix . '.gz'
     else
       let url = 'https://storage.googleapis.com/exafunction-dist/codeium/' . sha . '/language_server_' . bin_suffix . '.gz'
     endif
@@ -214,7 +228,9 @@ function! s:ActuallyStart() abort
   let args = [
         \ s:bin,
         \ '--api_server_url', get(config, 'api_url', 'https://server.codeium.com'),
-        \ '--manager_dir', manager_dir
+        \ '--manager_dir', manager_dir,
+        \ '--enable_local_search', '--enable_index_service', '--search_max_workspace_file_count', '5000',
+        \ '--enable_chat_web_server', '--enable_chat_client'
         \ ]
   if has_key(config, 'api_url') && !empty(config.api_url)
     let args += ['--enterprise_mode']
